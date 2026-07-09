@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GetYoPino</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d2e;
+    --card: #22263a;
+    --accent: #6c63ff;
+    --accent2: #00d4aa;
+    --text: #e8eaf6;
+    --muted: #8b92b3;
+    --border: #2e3358;
+    --danger: #ff6b6b;
+    --warn: #ffd166;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
+
+  /* NAV */
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+  .logo { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .nav-actions { display: flex; gap: 12px; }
+  .btn { padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: .9rem; font-weight: 600; transition: all .2s; }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), #9b59f7); color: #fff; }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(108,99,255,.4); }
+
+  /* HERO */
+  .hero { text-align: center; padding: 64px 24px 40px; }
+  .hero h1 { font-size: 2.8rem; font-weight: 900; line-height: 1.15; margin-bottom: 12px; }
+  .hero h1 span { background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero p { color: var(--muted); font-size: 1.1rem; max-width: 560px; margin: 0 auto 36px; }
+
+  /* SEARCH */
+  .search-wrap { max-width: 680px; margin: 0 auto; position: relative; }
+  .search-box { display: flex; gap: 0; background: var(--card); border: 2px solid var(--border); border-radius: 14px; overflow: hidden; transition: border-color .2s; }
+  .search-box:focus-within { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(108,99,255,.15); }
+  .search-box input { flex: 1; background: transparent; border: none; padding: 16px 20px; font-size: 1.05rem; color: var(--text); outline: none; }
+  .search-box input::placeholder { color: var(--muted); }
+  .search-btn { background: linear-gradient(135deg, var(--accent), #9b59f7); border: none; padding: 0 28px; color: #fff; font-size: 1.2rem; cursor: pointer; transition: opacity .2s; }
+  .search-btn:hover { opacity: .85; }
+
+  /* FILTERS */
+  .filters { max-width: 680px; margin: 14px auto 0; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .chip { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: .82rem; cursor: pointer; transition: all .2s; }
+  .chip:hover, .chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* PLATFORMS */
+  .platforms { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; padding: 32px 24px 0; }
+  .plat { display: flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 18px; font-size: .85rem; color: var(--muted); }
+  .plat-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* RESULTS */
+  #results-section { max-width: 1100px; margin: 0 auto; padding: 40px 24px; display: none; }
+  .results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: gap; }
+  .results-header h2 { font-size: 1.3rem; }
+  .results-header span { color: var(--muted); font-size: .9rem; }
+  .sort-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .sort-btn { padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: .82rem; cursor: pointer; transition: all .2s; }
+  .sort-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* AI RECOMMENDATION BOX */
+  .ai-rec { background: linear-gradient(135deg, rgba(108,99,255,.15), rgba(0,212,170,.1)); border: 1px solid var(--accent); border-radius: 16px; padding: 24px; margin-bottom: 32px; position: relative; overflow: hidden; }
+  .ai-rec::before { content: ''; position: absolute; top: -40px; right: -40px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(108,99,255,.3), transparent 70%); }
+  .ai-rec-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .ai-badge { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; padding: 4px 12px; border-radius: 20px; font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+  .ai-rec h3 { font-size: 1.1rem; color: var(--accent2); }
+  .ai-rec p { color: #c8cce8; line-height: 1.6; font-size: .95rem; }
+  .ai-thinking { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: .9rem; }
+  .dot-pulse { display: flex; gap: 4px; }
+  .dot-pulse span { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.2s ease-in-out infinite; }
+  .dot-pulse span:nth-child(2) { animation-delay: .2s; }
+  .dot-pulse span:nth-child(3) { animation-delay: .4s; }
+  @keyframes pulse { 0%,80%,100%{opacity:.3;transform:scale(.8)} 40%{opacity:1;transform:scale(1)} }
+
+  /* PRODUCT CARDS */
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: transform .2s, border-color .2s; position: relative; }
+  .card:hover { transform: translateY(-3px); border-color: var(--accent); }
+  .card-badge { position: absolute; top: 12px; left: 12px; padding: 4px 10px; border-radius: 6px; font-size: .72rem; font-weight: 700; text-transform: uppercase; z-index: 2; }
+  .badge-best { background: var(--accent2); color: #0f1117; }
+  .badge-cheap { background: var(--warn); color: #0f1117; }
+  .badge-fast { background: #4ecdc4; color: #0f1117; }
+  .card-img { width: 100%; height: 180px; object-fit: cover; background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 4rem; }
+  .card-body { padding: 16px; }
+  .card-platform { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+  .plat-icon { width: 18px; height: 18px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: .7rem; font-weight: 800; color: #fff; }
+  .card-platform span { font-size: .8rem; color: var(--muted); }
+  .card-title { font-size: 1rem; font-weight: 600; margin-bottom: 10px; line-height: 1.3; }
+  .card-prices { display: flex; gap: 16px; margin-bottom: 12px; align-items: baseline; }
+  .price-ars { font-size: 1.4rem; font-weight: 800; color: var(--accent2); }
+  .price-usd { font-size: .9rem; color: var(--muted); }
+  .card-meta { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+  .meta-item { display: flex; align-items: center; gap: 4px; font-size: .78rem; color: var(--muted); }
+  .stars { color: var(--warn); }
+
+  /* AI MINI REVIEW */
+  .ai-mini { background: rgba(108,99,255,.08); border: 1px solid rgba(108,99,255,.25); border-radius: 10px; padding: 12px; margin-bottom: 14px; }
+  .ai-mini-header { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-size: .75rem; color: var(--accent); font-weight: 700; }
+  .ai-mini p { font-size: .82rem; color: #b8bcd8; line-height: 1.5; }
+  .ai-mini-loading { display: flex; align-items: center; gap: 6px; font-size: .8rem; color: var(--muted); }
+
+  /* SCORES */
+  .score-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .score-pill { padding: 3px 10px; border-radius: 12px; font-size: .72rem; font-weight: 600; }
+  .score-a { background: rgba(0,212,170,.15); color: var(--accent2); }
+  .score-b { background: rgba(255,209,102,.15); color: var(--warn); }
+  .score-c { background: rgba(255,107,107,.15); color: var(--danger); }
+
+  .card-actions { display: flex; gap: 8px; }
+  .btn-visit { flex: 1; padding: 10px; border-radius: 8px; border: none; background: linear-gradient(135deg, var(--accent), #9b59f7); color: #fff; font-weight: 600; cursor: pointer; font-size: .88rem; transition: opacity .2s; }
+  .btn-visit:hover { opacity: .85; }
+  .btn-save { padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all .2s; }
+  .btn-save:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* LOADING */
+  .loading-overlay { text-align: center; padding: 60px 24px; }
+  .spinner { width: 48px; height: 48px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* COMING SOON */
+  .coming-soon { max-width: 1100px; margin: 0 auto; padding: 0 24px 60px; }
+  .coming-soon h3 { color: var(--muted); font-size: .9rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+  .features-row { display: flex; gap: 16px; flex-wrap: wrap; }
+  .feat { background: var(--card); border: 1px dashed var(--border); border-radius: 12px; padding: 20px; flex: 1; min-width: 200px; opacity: .6; }
+  .feat-icon { font-size: 1.5rem; margin-bottom: 8px; }
+  .feat h4 { font-size: .95rem; margin-bottom: 4px; }
+  .feat p { font-size: .8rem; color: var(--muted); }
+
+  footer { text-align: center; padding: 24px; color: var(--muted); font-size: .82rem; border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">🛒 GetYoPino</div>
+  <div class="nav-actions">
+    <button class="btn btn-ghost" onclick="showComingSoon()">Iniciar sesión</button>
+    <button class="btn btn-primary" onclick="showComingSoon()">Crear cuenta</button>
+  </div>
+</nav>
+
+<div id="home-section">
+  <div class="hero">
+    <h1>Compará precios con<br><span>inteligencia artificial</span></h1>
+    <p>GetYoPino encontrá el mejor precio en todos los e-commerce de Argentina y el mundo. La IA analiza costo, envío, calidad y reputación por vos.</p>
+    <div class="search-wrap">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Ej: iPhone 15, zapatillas Nike, auriculares..." onkeydown="if(event.key==='Enter')doSearch()"/>
+        <button class="search-btn" onclick="doSearch()">🔍</button>
+      </div>
+    </div>
+    <div class="filters">
+      <button class="chip active" onclick="toggleChip(this)">Todos</button>
+      <button class="chip" onclick="toggleChip(this)">Electrónica</button>
+      <button class="chip" onclick="toggleChip(this)">Ropa y calzado</button>
+      <button class="chip" onclick="toggleChip(this)">Hogar</button>
+      <button class="chip" onclick="toggleChip(this)">Deporte</button>
+      <button class="chip" onclick="toggleChip(this)">Belleza</button>
+    </div>
+  </div>
+
+  <div class="platforms">
+    <div class="plat"><span class="plat-dot" style="background:#ffe600"></span>MercadoLibre</div>
+    <div class="plat"><span class="plat-dot" style="background:#ff9900"></span>Amazon</div>
+    <div class="plat"><span class="plat-dot" style="background:#ff6259"></span>Temu</div>
+    <div class="plat"><span class="plat-dot" style="background:#fe6ba3"></span>Shein</div>
+    <div class="plat"><span class="plat-dot" style="background:#0064d2"></span>eBay</div>
+    <div class="plat"><span class="plat-dot" style="background:#4ecdc4"></span>+más</div>
+  </div>
+
+  <div style="padding:60px 24px 0;">
+    <div class="coming-soon">
+      <h3>🚀 Próximamente</h3>
+      <div class="features-row">
+        <div class="feat"><div class="feat-icon">👤</div><h4>Cuenta de usuario</h4><p>Historial de búsquedas, favoritos y alertas de precio.</p></div>
+        <div class="feat"><div class="feat-icon">🔔</div><h4>Alertas de precio</h4><p>Te avisamos cuando el producto baje de precio.</p></div>
+        <div class="feat"><div class="feat-icon">📊</div><h4>Historial de precios</h4><p>Gráficos con la evolución del precio en el tiempo.</p></div>
+        <div class="feat"><div class="feat-icon">🤝</div><h4>Comparación directa</h4><p>Ponés 2 productos uno al lado del otro.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="results-section">
+  <div id="results-inner"></div>
+</div>
+
+<footer>© 2025 GetYoPino · getyopino.com · Comparador inteligente para Argentina · Precios orientativos, siempre verificá en el sitio oficial.</footer>
+
+<script>
+const USD_RATE = 1180;
+
+const MOCK_PRODUCTS = {
+  default: [
+    { id:1, title:"iPhone 15 128GB Negro", platform:"MercadoLibre", plat_color:"#ffe600", plat_bg:"#333", emoji:"📱", price_usd:699, delivery:"3-5 días", rating:4.7, reviews:2341, origin:"local", seller:"TechStore Oficial", badge:"best" },
+    { id:2, title:"iPhone 15 128GB (Importado)", platform:"Amazon", plat_color:"#ff9900", plat_bg:"#232f3e", emoji:"📱", price_usd:579, delivery:"15-25 días", rating:4.5, reviews:8920, origin:"importado", seller:"Amazon US", badge:"cheap" },
+    { id:3, title:"iPhone 15 128GB Azul", platform:"eBay", plat_color:"#0064d2", plat_bg:"#0064d2", emoji:"📱", price_usd:540, delivery:"20-30 días", rating:4.2, reviews:312, origin:"importado", seller:"US_Tech_Deals", badge:null },
+    { id:4, title:"iPhone 15 128GB (Caja Abierta)", platform:"MercadoLibre", plat_color:"#ffe600", plat_bg:"#333", emoji:"📱", price_usd:620, delivery:"2-3 días", rating:4.6, reviews:89, origin:"local", seller:"iStar Argentina", badge:"fast" },
+    { id:5, title:"iPhone 15 128GB Blanco", platform:"Temu", plat_color:"#ff6259", plat_bg:"#e53935", emoji:"📱", price_usd:480, delivery:"25-40 días", rating:3.8, reviews:542, origin:"importado", seller:"Temu Store", badge:null },
+    { id:6, title:"iPhone 15 128GB Rosa", platform:"Amazon", plat_color:"#ff9900", plat_bg:"#232f3e", emoji:"📱", price_usd:599, delivery:"18-22 días", rating:4.6, reviews:4210, origin:"importado", seller:"Apple Official Store", badge:null },
+  ]
+};
+
+function getProducts(query) {
+  return MOCK_PRODUCTS.default.map(p => ({
+    ...p,
+    title: p.title.replace("iPhone 15", query.length > 3 ? query : "iPhone 15")
+  }));
+}
+
+function toggleChip(el) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function doSearch() {
+  const q = document.getElementById('searchInput').value.trim();
+  if (!q) return;
+  document.getElementById('home-section').style.display = 'none';
+  const rs = document.getElementById('results-section');
+  rs.style.display = 'block';
+  rs.innerHTML = `<div class="loading-overlay"><div class="spinner"></div><p style="color:var(--muted)">Buscando en todos los e-commerce...</p></div>`;
+  setTimeout(() => renderResults(q), 1800);
+}
+
+function renderResults(query) {
+  const products = getProducts(query);
+  const rs = document.getElementById('results-section');
+  rs.innerHTML = `
+    <div style="max-width:1100px;margin:0 auto;padding:40px 24px;">
+      <div class="results-header">
+        <div>
+          <h2>Resultados para "<span style="color:var(--accent)">${query}</span>"</h2>
+          <span>${products.length} resultados en 5 plataformas</span>
+        </div>
+        <button class="btn btn-ghost" onclick="goHome()">← Nueva búsqueda</button>
+      </div>
+
+      <div class="ai-rec" id="ai-global">
+        <div class="ai-rec-header">
+          <span class="ai-badge">✨ IA</span>
+          <h3>Análisis inteligente</h3>
+        </div>
+        <div class="ai-thinking"><div class="dot-pulse"><span></span><span></span><span></span></div> Analizando precios, plataformas y condiciones...</div>
+      </div>
+
+      <div class="sort-bar">
+        <button class="sort-btn active">Relevancia</button>
+        <button class="sort-btn" onclick="sortBy('price')">Menor precio</button>
+        <button class="sort-btn" onclick="sortBy('rating')">Mejor puntuación</button>
+        <button class="sort-btn" onclick="sortBy('delivery')">Entrega rápida</button>
+      </div>
+
+      <div class="cards-grid" id="cards-grid">
+        ${products.map(p => cardHTML(p)).join('')}
+      </div>
+    </div>`;
+
+  // Load AI global rec
+  setTimeout(() => loadGlobalAI(query, products), 800);
+  // Load mini AI per card
+  products.forEach(p => setTimeout(() => loadMiniAI(p, query), 1200 + Math.random()*1500));
+}
+
+function cardHTML(p) {
+  const ars = (p.price_usd * USD_RATE).toLocaleString('es-AR');
+  const stars = '★'.repeat(Math.floor(p.rating)) + (p.rating % 1 >= .5 ? '½' : '') + '☆'.repeat(5-Math.ceil(p.rating));
+  const badgeHTML = p.badge
+    ? `<span class="card-badge badge-${p.badge}">${p.badge==='best'?'🏆 Mejor opción':p.badge==='cheap'?'💰 Más barato':'⚡ Más rápido'}</span>`
+    : '';
+  return `
+    <div class="card" id="card-${p.id}">
+      ${badgeHTML}
+      <div class="card-img">${p.emoji}</div>
+      <div class="card-body">
+        <div class="card-platform">
+          <div class="plat-icon" style="background:${p.plat_bg}">${p.platform[0]}</div>
+          <span>${p.platform} · ${p.origin === 'importado' ? '🌍 Importado' : '🇦🇷 Local'}</span>
+        </div>
+        <div class="card-title">${p.title}</div>
+        <div class="card-prices">
+          <span class="price-ars">$${ars} ARS</span>
+          <span class="price-usd">≈ USD ${p.price_usd}</span>
+        </div>
+        <div class="card-meta">
+          <span class="meta-item">🚚 ${p.delivery}</span>
+          <span class="meta-item stars">${stars}</span>
+          <span class="meta-item">(${p.reviews.toLocaleString()})</span>
+        </div>
+        <div class="ai-mini" id="mini-${p.id}">
+          <div class="ai-mini-loading"><div class="dot-pulse"><span></span><span></span><span></span></div> IA analizando...</div>
+        </div>
+        <div class="card-actions">
+          <button class="btn-visit" onclick="visitSite('${p.platform}')">Ver en ${p.platform} →</button>
+          <button class="btn-save" title="Guardar" onclick="showComingSoon()">🔖</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function loadGlobalAI(query, products) {
+  const cheapest = products.reduce((a,b) => a.price_usd < b.price_usd ? a : b);
+  const bestRated = products.reduce((a,b) => a.rating > b.rating ? a : b);
+  const fastest = products.sort((a,b) => parseInt(a.delivery) - parseInt(b.delivery))[0];
+
+  const prompt = `Sos un asistente de comparación de precios para Argentina. El usuario busca: "${query}".
+Hay ${products.length} resultados de plataformas: ${products.map(p=>`${p.platform} a USD ${p.price_usd} (${p.origin}, entrega ${p.delivery}, rating ${p.rating})`).join('; ')}.
+En 3 oraciones cortas, dales una recomendación clara sobre dónde conviene comprar considerando precio total (incluyendo posibles impuestos de importación del 50% para productos del exterior), tiempo de entrega, reputación y seguridad. Mencioná la mejor opción local y la mejor del exterior si aplica. Respondé en español argentino, sin formato markdown.`;
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        model:"claude-sonnet-4-20250514",
+        max_tokens:1000,
+        messages:[{role:"user",content:prompt}]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.[0]?.text || "No se pudo generar el análisis.";
+    document.getElementById('ai-global').innerHTML = `
+      <div class="ai-rec-header"><span class="ai-badge">✨ IA</span><h3>Recomendación general</h3></div>
+      <p>${text}</p>
+      <div style="display:flex;gap:12px;margin-top:14px;flex-wrap:wrap;">
+        <span style="font-size:.8rem;color:var(--muted)">💰 Más barato: <b style="color:var(--accent2)">${cheapest.platform} (USD ${cheapest.price_usd})</b></span>
+        <span style="font-size:.8rem;color:var(--muted)">⭐ Mejor reputación: <b style="color:var(--accent2)">${bestRated.platform} (${bestRated.rating}★)</b></span>
+        <span style="font-size:.8rem;color:var(--muted)">⚡ Más rápido: <b style="color:var(--accent2)">${fastest.platform} (${fastest.delivery})</b></span>
+      </div>`;
+  } catch(e) {
+    document.getElementById('ai-global').innerHTML = `<div class="ai-rec-header"><span class="ai-badge">✨ IA</span><h3>Análisis</h3></div><p style="color:var(--muted)">No se pudo conectar con la IA. Revisá tu conexión.</p>`;
+  }
+}
+
+async function loadMiniAI(p, query) {
+  const el = document.getElementById(`mini-${p.id}`);
+  if (!el) return;
+
+  const importNote = p.origin === 'importado' ? 'Es importado, puede tener impuestos adicionales del 50%.' : 'Es local, sin impuestos de importación.';
+  const prompt = `En 2 oraciones muy cortas, analizá esta opción para comprar "${query}" en Argentina:
+Plataforma: ${p.platform}. Precio: USD ${p.price_usd}. Entrega: ${p.delivery}. Rating: ${p.rating}/5 (${p.reviews} reseñas). ${importNote}
+Mencioná si es conveniente o no y por qué. Respondé en español argentino, sin markdown, sin emojis.`;
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        model:"claude-sonnet-4-20250514",
+        max_tokens:1000,
+        messages:[{role:"user",content:prompt}]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.[0]?.text || "—";
+    const score = p.rating >= 4.5 ? 'a' : p.rating >= 4 ? 'b' : 'c';
+    const costScore = p.price_usd < 580 ? 'a' : p.price_usd < 650 ? 'b' : 'c';
+    const delivScore = parseInt(p.delivery) <= 5 ? 'a' : parseInt(p.delivery) <= 20 ? 'b' : 'c';
+    el.innerHTML = `
+      <div class="ai-mini-header">🤖 Análisis IA</div>
+      <div class="score-row">
+        <span class="score-pill score-${costScore}">💰 Precio ${costScore==='a'?'Excelente':costScore==='b'?'Bueno':'Alto'}</span>
+        <span class="score-pill score-${delivScore}">🚚 Envío ${delivScore==='a'?'Rápido':delivScore==='b'?'Normal':'Lento'}</span>
+        <span class="score-pill score-${score}">⭐ Rep. ${score==='a'?'Excelente':score==='b'?'Buena':'Regular'}</span>
+      </div>
+      <p>${text}</p>`;
+  } catch(e) {
+    el.innerHTML = `<div class="ai-mini-header">🤖 Análisis IA</div><p style="color:var(--muted);font-size:.8rem">No disponible</p>`;
+  }
+}
+
+function sortBy(type) {
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function visitSite(platform) {
+  const urls = {
+    MercadoLibre:'https://www.mercadolibre.com.ar',
+    Amazon:'https://www.amazon.com',
+    Temu:'https://www.temu.com',
+    Shein:'https://www.shein.com',
+    eBay:'https://www.ebay.com'
+  };
+  window.open(urls[platform]||'#','_blank');
+}
+
+function goHome() {
+  document.getElementById('results-section').style.display = 'none';
+  document.getElementById('home-section').style.display = 'block';
+  document.getElementById('searchInput').value = '';
+}
+
+function showComingSoon() {
+  alert('🚀 Función próximamente disponible.\n\nEstamos trabajando en el sistema de cuentas de usuario con historial, favoritos y alertas de precio.');
+}
+</script>
+</body>
+</html>

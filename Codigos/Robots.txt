@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# No indexar búsquedas dinámicas (evita contenido duplicado)
+Disallow: /buscar?*
+Disallow: /search?*
+Disallow: /api/
+Disallow: /admin/
+
+# Permitir Googlebot específicamente
+User-agent: Googlebot
+Allow: /
+
+# Sitemap
+Sitemap: https://www.getyopino.com/sitemap.xml
